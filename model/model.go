@@ -20,7 +20,7 @@ type ThingState struct {
 // UI menu, a label which provides a human readable label for a scene, a scope which restricts the
 // set of selectable things and a list of thing states.
 type Scene struct {
-	UUID   string       `json:"uuid,omitempty"`
+	ID     string       `json:"id,omitempty"`
 	Slot   int          `json:"slot,omitempty"`
 	Label  string       `json:"label,omitempty"`
 	Scope  string       `json:"scope,omitempty"`

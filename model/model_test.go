@@ -17,7 +17,7 @@ func TestJSONRoundTrip(t *testing.T) {
 		Version: "1.0",
 		Scenes: []Scene{
 			Scene{
-				UUID:  "CAFE-BABE-0001",
+				ID:    "CAFE-BABE-0001",
 				Slot:  1,
 				Label: "Romantic",
 				Scope: "sites/a458dfe3-3a81-43cc-a118-6c42c814f4b3",
@@ -46,8 +46,8 @@ func TestJSONRoundTrip(t *testing.T) {
 		t.Fatalf("unmarhsalling - %s", err)
 	}
 
-	assert(t, "uuid", func() bool { return deserialized.Scenes[0].UUID == item.Scenes[0].UUID })
-	assert(t, "deserialized.Scenes[0].Things[0].Channels[0].State", func() bool { ret`urn deserialized.Scenes[0].Things[0].Channels[0].State == false })
+	assert(t, "id", func() bool { return deserialized.Scenes[0].ID == item.Scenes[0].ID })
+	assert(t, "deserialized.Scenes[0].Things[0].Channels[0].State", func() bool { return deserialized.Scenes[0].Things[0].Channels[0].State == false })
 
 }
 
