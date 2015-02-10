@@ -36,6 +36,17 @@ func (ps *PresetsService) Init() error {
 	if ps.Conn == nil {
 		return fmt.Errorf("illegal state: Conn is nil")
 	}
+
+	var err error
+	siteID := config.MustString("siteId")
+	topic := fmt.Sprintf("$site/%s/service/%s", siteID, "presets")
+	announcement := &nmodel.ServiceAnnouncement{
+		Schema: "http://schema.ninjablocks.com/service/presets",
+	}
+	if _, err = ps.Conn.ExportService(ps, topic, announcement); err != nil {
+		return err
+	}
+
 	ps.initialized = true
 	return nil
 }
