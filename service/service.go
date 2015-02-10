@@ -112,5 +112,6 @@ func (ps *PresetsService) StoreScene(model *model.Scene) (*model.Scene, error) {
 
 // see: http://schema.ninjablocks.com/service/presets#applyScene
 func (ps *PresetsService) ApplyScene(id string) error {
+	ps.checkInit()
 	return fmt.Errorf("unimplemented function: ApplyScene")
 }
