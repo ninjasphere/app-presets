@@ -10,14 +10,38 @@ type PresetsService struct {
 	Save  func(*model.Presets)
 	Conn        *ninja.Connection
 	Log         *logger.Logger
+	initialized bool
 }
 
 func (ps *PresetsService) Init() error {
+	if ps.Log == nil {
+		return fmt.Errorf("illegal state: no logger")
+	}
+	if ps.Model == nil {
+		return fmt.Errorf("illegal state: Model is nil")
+	}
+	if ps.Save == nil {
+		return fmt.Errorf("illegal state: Save is nil")
+	}
+	if ps.Conn == nil {
+		return fmt.Errorf("illegal state: Conn is nil")
+	}
+	ps.initialized = true
 	return nil
 }
 
 func (ps *PresetsService) Destroy() error {
+	ps.initialized = false
 	return nil
+}
+
+func (ps *PresetsService) checkInit() {
+	if ps.Log == nil {
+		ps.Log = logger.GetLogger("com.ninja.app-presets")
+	}
+	if !ps.initialized {
+		ps.Log.Fatalf("illegal state: the service is not initialized")
+	}
 }
 
 // see: http://schema.ninjablocks.com/service/presets#listPresetable
