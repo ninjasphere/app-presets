@@ -47,8 +47,9 @@ func (ps *PresetsService) checkInit() {
 }
 
 // see: http://schema.ninjablocks.com/service/presets#listPresetable
-func (ps *PresetsService) ListPresetable(scope string) ([]model.ThingState, error) {
-	return make([]model.ThingState, 0, 0), fmt.Errorf("unimplemented function: ListPresetable")
+func (ps *PresetsService) ListPresetable(scope string) ([]*model.ThingState, error) {
+	ps.checkInit()
+	return make([]*model.ThingState, 0, 0), fmt.Errorf("unimplemented function: ListPresetable")
 }
 
 // see: http://schema.ninjablocks.com/service/presets#fetchScenes
