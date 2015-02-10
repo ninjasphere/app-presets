@@ -23,6 +23,11 @@ func (a *PresetsApp) Start(m *model.Presets) error {
 	if a.service != nil {
 		return fmt.Errorf("Service has already been started - the action has been ignored.")
 	} else {
+		if m == nil || m.Version == "" {
+			m = &model.Presets{
+				Version: Version,
+			}
+		}
 		service := &service.PresetsService{
 			Model: m,
 			Save: func(m *model.Presets) {
@@ -31,6 +36,7 @@ func (a *PresetsApp) Start(m *model.Presets) error {
 			Conn: a.Conn,
 			Log:  a.Log,
 		}
+		service.Save(m)
 		if err := service.Init(); err != nil {
 			return err
 		} else {
