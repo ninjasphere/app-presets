@@ -29,6 +29,6 @@ type Scene struct {
 
 // A Presets object is a collection of Scenes.
 type Presets struct {
-	Version string  `json:"version,omitempty"`
-	Scenes  []Scene `json:"scenes"`
+	Version string   `json:"version,omitempty"`
+	Scenes  []*Scene `json:"scenes"`
 }
