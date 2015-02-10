@@ -1,6 +1,7 @@
 package service
 
 import (
+	"code.google.com/p/go-uuid/uuid"
 	"fmt"
 	"github.com/ninjasphere/app-presets/model"
 	"github.com/ninjasphere/go-ninja/api"
@@ -76,8 +77,37 @@ func (ps *PresetsService) FetchScene(id string) (*model.Scene, error) {
 }
 
 // see: http://schema.ninjablocks.com/service/presets#storeScene
-func (ps *PresetsService) StoreScene(model *model.Scene) error {
-	return fmt.Errorf("unimplemented function: StoreScene")
+func (ps *PresetsService) StoreScene(model *model.Scene) (*model.Scene, error) {
+	ps.checkInit()
+	var found int
+
+	if model.Scope == "" {
+		return nil, fmt.Errorf("illegal argument: model.Scope is empty")
+	}
+
+	for i, m := range ps.Model.Scenes {
+		if model.ID == "" {
+			if m.Scope == model.Scope && m.Slot == model.Slot {
+				found = i
+			}
+		} else {
+			if m.ID == model.ID {
+				found = i
+			}
+		}
+	}
+
+	if model.ID == "" {
+		model.ID = uuid.NewUUID().String()
+	}
+
+	if found >= len(ps.Model.Scenes) {
+		ps.Model.Scenes = append(ps.Model.Scenes, model)
+	} else {
+		ps.Model.Scenes[found] = model
+	}
+	ps.Save(ps.Model)
+	return model, nil
 }
 
 // see: http://schema.ninjablocks.com/service/presets#applyScene
