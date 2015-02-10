@@ -6,9 +6,16 @@ import (
 )
 
 type PresetsService struct {
+	Model *model.Presets
+	Save  func(*model.Presets)
 }
 
-func (ps *PresetsService) Init() {
+func (ps *PresetsService) Init() error {
+	return nil
+}
+
+func (ps *PresetsService) Destroy() error {
+	return nil
 }
 
 // see: http://schema.ninjablocks.com/service/presets#listPresetable
