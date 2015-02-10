@@ -28,6 +28,8 @@ func (a *PresetsApp) Start(m *model.Presets) error {
 			Save: func(m *model.Presets) {
 				a.SendEvent("config", m)
 			},
+			Conn: a.Conn,
+			Log:  a.Log,
 		}
 		if err := service.Init(); err != nil {
 			return err
