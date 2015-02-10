@@ -53,8 +53,15 @@ func (ps *PresetsService) ListPresetable(scope string) ([]*model.ThingState, err
 }
 
 // see: http://schema.ninjablocks.com/service/presets#fetchScenes
-func (ps *PresetsService) FetchScenes(scope string) ([]model.Scene, error) {
-	return make([]model.Scene, 0, 0), fmt.Errorf("unimplemented function: FetchScenes")
+func (ps *PresetsService) FetchScenes(scope string) ([]*model.Scene, error) {
+	ps.checkInit()
+	collect := make([]*model.Scene, 0, 0)
+	for _, m := range ps.Model.Scenes {
+		if m.Scope == scope {
+			collect = append(collect, m)
+		}
+	}
+	return collect, nil
 }
 
 // see: http://schema.ninjablocks.com/service/presets#fetchScene
