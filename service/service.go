@@ -6,8 +6,8 @@ import (
 )
 
 type PresetsService struct {
-	Model *model.Presets
-	Save  func(*model.Presets)
+	Model       *model.Presets
+	Save        func(*model.Presets)
 	Conn        *ninja.Connection
 	Log         *logger.Logger
 	initialized bool
