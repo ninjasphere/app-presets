@@ -3,6 +3,8 @@ package service
 import (
 	"fmt"
 	"github.com/ninjasphere/app-presets/model"
+	"github.com/ninjasphere/go-ninja/api"
+	"github.com/ninjasphere/go-ninja/logger"
 )
 
 type PresetsService struct {
