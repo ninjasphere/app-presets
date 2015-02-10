@@ -2,12 +2,20 @@ package service
 
 import (
 	"github.com/ninjasphere/app-presets/model"
-	"github.com/ninjasphere/go-ninja/api"
 	"github.com/ninjasphere/go-ninja/logger"
+	nmodel "github.com/ninjasphere/go-ninja/model"
+	"github.com/ninjasphere/go-ninja/rpc"
 	"testing"
 )
 
 var saved = make([]*model.Presets, 0)
+
+type mockConnection struct {
+}
+
+func (*mockConnection) ExportService(service interface{}, topic string, ann *nmodel.ServiceAnnouncement) (*rpc.ExportedService, error) {
+	return nil, nil
+}
 
 func makeService() (error, *PresetsService) {
 	service := &PresetsService{
@@ -23,7 +31,7 @@ func makeService() (error, *PresetsService) {
 		Save: func(m *model.Presets) {
 			saved = append(saved, m)
 		},
-		Conn: &ninja.Connection{},
+		Conn: &mockConnection{},
 		Log:  logger.GetLogger("mock"),
 	}
 	err := service.Init()

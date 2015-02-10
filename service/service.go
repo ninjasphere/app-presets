@@ -4,14 +4,21 @@ import (
 	"code.google.com/p/go-uuid/uuid"
 	"fmt"
 	"github.com/ninjasphere/app-presets/model"
-	"github.com/ninjasphere/go-ninja/api"
+
+	"github.com/ninjasphere/go-ninja/config"
 	"github.com/ninjasphere/go-ninja/logger"
+	nmodel "github.com/ninjasphere/go-ninja/model"
+	"github.com/ninjasphere/go-ninja/rpc"
 )
+
+type Connection interface {
+	ExportService(service interface{}, topic string, ann *nmodel.ServiceAnnouncement) (*rpc.ExportedService, error)
+}
 
 type PresetsService struct {
 	Model       *model.Presets
 	Save        func(*model.Presets)
-	Conn        *ninja.Connection
+	Conn        Connection
 	Log         *logger.Logger
 	initialized bool
 }
