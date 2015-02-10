@@ -82,10 +82,10 @@ func TestFetchScenes(t *testing.T) {
 	if err != nil {
 		t.Fatalf("err was %v but expected nil", err)
 	}
-	if scenes, err := s.FetchScenes("site/site-id"); err != nil {
+	if scenes, err := s.FetchScenes("site/site-id"); err != nil || scenes == nil {
 		t.Fatalf("err was %v but expecting nil", err)
-	} else if len(scenes) != 1 {
-		t.Fatalf("number of results was: %d but expected: 1", len(scenes))
+	} else if len(*scenes) != 1 {
+		t.Fatalf("number of results was: %d but expected: 1", len(*scenes))
 	}
 }
 

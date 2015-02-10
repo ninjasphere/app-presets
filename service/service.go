@@ -66,13 +66,14 @@ func (ps *PresetsService) checkInit() {
 }
 
 // see: http://schema.ninjablocks.com/service/presets#listPresetable
-func (ps *PresetsService) ListPresetable(scope string) ([]*model.ThingState, error) {
+func (ps *PresetsService) ListPresetable(scope string) (*[]*model.ThingState, error) {
 	ps.checkInit()
-	return make([]*model.ThingState, 0, 0), fmt.Errorf("unimplemented function: ListPresetable")
+	slice := make([]*model.ThingState, 0, 0)
+	return &slice, fmt.Errorf("unimplemented function: ListPresetable")
 }
 
 // see: http://schema.ninjablocks.com/service/presets#fetchScenes
-func (ps *PresetsService) FetchScenes(scope string) ([]*model.Scene, error) {
+func (ps *PresetsService) FetchScenes(scope string) (*[]*model.Scene, error) {
 	ps.checkInit()
 	collect := make([]*model.Scene, 0, 0)
 	for _, m := range ps.Model.Scenes {
@@ -80,7 +81,7 @@ func (ps *PresetsService) FetchScenes(scope string) ([]*model.Scene, error) {
 			collect = append(collect, m)
 		}
 	}
-	return collect, nil
+	return &collect, nil
 }
 
 // see: http://schema.ninjablocks.com/service/presets#fetchScene
