@@ -66,7 +66,13 @@ func (ps *PresetsService) FetchScenes(scope string) ([]*model.Scene, error) {
 
 // see: http://schema.ninjablocks.com/service/presets#fetchScene
 func (ps *PresetsService) FetchScene(id string) (*model.Scene, error) {
-	return nil, fmt.Errorf("unimplemented function: FetchScene")
+	ps.checkInit()
+	for _, m := range ps.Model.Scenes {
+		if m.ID == id {
+			return m, nil
+		}
+	}
+	return nil, fmt.Errorf("No such scene: %s", id)
 }
 
 // see: http://schema.ninjablocks.com/service/presets#storeScene
