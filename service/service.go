@@ -225,10 +225,6 @@ func (ps *PresetsService) StoreScene(model *model.Scene) (*model.Scene, error) {
 		return nil, fmt.Errorf("illegal argument: model.Scope is empty")
 	}
 
-	if model.ID == "prototype" {
-		return nil, fmt.Errorf("illegal argument: model.ID == \"prototype\"")
-	}
-
 	found := -1
 	for i, m := range ps.Model.Scenes {
 		if model.ID == "" {
