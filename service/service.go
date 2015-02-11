@@ -220,7 +220,6 @@ func (ps *PresetsService) FetchScenePrototype(scope string) (*model.Scene, error
 // see: http://schema.ninjablocks.com/service/presets#storeScene
 func (ps *PresetsService) StoreScene(model *model.Scene) (*model.Scene, error) {
 	ps.checkInit()
-	var found int
 
 	if model.Scope == "" {
 		return nil, fmt.Errorf("illegal argument: model.Scope is empty")
@@ -230,14 +229,17 @@ func (ps *PresetsService) StoreScene(model *model.Scene) (*model.Scene, error) {
 		return nil, fmt.Errorf("illegal argument: model.ID == \"prototype\"")
 	}
 
+	found := -1
 	for i, m := range ps.Model.Scenes {
 		if model.ID == "" {
 			if m.Scope == model.Scope && m.Slot == model.Slot {
 				found = i
+				break
 			}
 		} else {
 			if m.ID == model.ID {
 				found = i
+				break
 			}
 		}
 	}
@@ -246,7 +248,7 @@ func (ps *PresetsService) StoreScene(model *model.Scene) (*model.Scene, error) {
 		model.ID = uuid.NewUUID().String()
 	}
 
-	if found >= len(ps.Model.Scenes) {
+	if found < 0 {
 		ps.Model.Scenes = append(ps.Model.Scenes, model)
 	} else {
 		ps.Model.Scenes[found] = model
