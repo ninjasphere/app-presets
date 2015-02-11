@@ -107,7 +107,6 @@ func (ps *PresetsService) FetchScenePrototype(scope string) (*model.Scene, error
 	things := make([]*nmodel.Thing, 0)
 	keptThings := make([]*nmodel.Thing, 0, len(things))
 	thingClient.Call("fetchAll", nil, &things, defaultTimeout)
-	ps.Log.Debugf("received %v\n", things)
 
 	for _, t := range things {
 		if !t.Promoted ||
