@@ -2,6 +2,7 @@ package service
 
 import (
 	"github.com/ninjasphere/app-presets/model"
+	"github.com/ninjasphere/go-ninja/api"
 	"github.com/ninjasphere/go-ninja/logger"
 	nmodel "github.com/ninjasphere/go-ninja/model"
 	"github.com/ninjasphere/go-ninja/rpc"
@@ -15,6 +16,10 @@ type mockConnection struct {
 
 func (*mockConnection) ExportService(service interface{}, topic string, ann *nmodel.ServiceAnnouncement) (*rpc.ExportedService, error) {
 	return nil, nil
+}
+
+func (*mockConnection) GetServiceClient(serviceTopic string) *ninja.ServiceClient {
+	return nil
 }
 
 func makeService() (error, *PresetsService) {

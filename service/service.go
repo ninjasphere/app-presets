@@ -5,14 +5,18 @@ import (
 	"fmt"
 	"github.com/ninjasphere/app-presets/model"
 
+	"github.com/ninjasphere/go-ninja/api"
 	"github.com/ninjasphere/go-ninja/config"
 	"github.com/ninjasphere/go-ninja/logger"
 	nmodel "github.com/ninjasphere/go-ninja/model"
 	"github.com/ninjasphere/go-ninja/rpc"
+	"strings"
+	"time"
 )
 
 type Connection interface {
 	ExportService(service interface{}, topic string, ann *nmodel.ServiceAnnouncement) (*rpc.ExportedService, error)
+	GetServiceClient(serviceTopic string) *ninja.ServiceClient
 }
 
 type PresetsService struct {
@@ -88,10 +92,53 @@ func (ps *PresetsService) FetchScene(id string) (*model.Scene, error) {
 	return nil, fmt.Errorf("No such scene: %s", id)
 }
 
+const defaultTimeout = 10 * time.Second
+
 // see: http://schema.ninjablocks.com/service/presets#fetchScenePrototype
 func (ps *PresetsService) FetchScenePrototype(scope string) (*model.Scene, error) {
 	ps.checkInit()
-	return nil, fmt.Errorf("Not implemented: FetchScenePrototype")
+
+	location := ""
+	roomOffset := strings.Index(scope, "room/")
+	if roomOffset >= 0 {
+		location = scope[roomOffset:]
+	}
+	thingClient := ps.Conn.GetServiceClient("$home/services/ThingModel")
+	things := make([]*nmodel.Thing, 0)
+	keptThings := make([]*nmodel.Thing, 0, len(things))
+	thingClient.Call("fetchAll", nil, &things, defaultTimeout)
+	ps.Log.Debugf("received %v\n", things)
+
+	for _, t := range things {
+		if !t.Promoted ||
+			(location != "" && (t.Location == nil || *t.Location != location)) {
+			continue
+		}
+		keptThings = append(keptThings, t)
+	}
+	result := &model.Scene{
+		Scope:  scope,
+		Things: make([]model.ThingState, 0, len(keptThings)),
+	}
+	for _, t := range keptThings {
+		if t.Device == nil || t.Device.Channels == nil {
+			continue
+		}
+		thingState := model.ThingState{
+			ID:       t.ID,
+			Channels: make([]model.ChannelState, 0, len(*t.Device.Channels)),
+		}
+		for _, c := range *t.Device.Channels {
+			channelState := model.ChannelState{
+				ID: c.ID,
+			}
+			thingState.Channels = append(thingState.Channels, channelState)
+		}
+		if len(thingState.Channels) > 0 {
+			result.Things = append(result.Things, thingState)
+		}
+	}
+	return result, nil
 }
 
 // see: http://schema.ninjablocks.com/service/presets#storeScene
