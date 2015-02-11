@@ -44,7 +44,7 @@ func (pr *PresetsRouter) GetScene(r *http.Request, w http.ResponseWriter, params
 }
 
 func (pr *PresetsRouter) ApplyScene(r *http.Request, w http.ResponseWriter, params martini.Params) {
-	scene, err := pr.presets.ApplyScene(params["id"])
+	err := pr.presets.ApplyScene(params["id"])
 	writeResponse(400, w, nil, err)
 }
 
