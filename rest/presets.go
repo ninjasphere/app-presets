@@ -61,9 +61,10 @@ func (pr *PresetsRouter) GetScenes(r *http.Request, w http.ResponseWriter) {
 	writeResponse(400, w, *scenes, err)
 }
 
-func (pr *PresetsRouter) PutScene(r *http.Request, w http.ResponseWriter) {
+func (pr *PresetsRouter) PutScene(r *http.Request, w http.ResponseWriter, params martini.Params) {
 	scene := &model.Scene{}
 	json.NewDecoder(r.Body).Decode(scene)
+	scene.ID = params["id"]
 
 	scene, err := pr.presets.StoreScene(scene)
 	writeResponse(400, w, scene, err)
