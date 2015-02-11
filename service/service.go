@@ -132,6 +132,7 @@ func (ps *PresetsService) FetchScenePrototype(scope string) (*model.Scene, error
 			channelState := model.ChannelState{
 				ID: c.ID,
 			}
+			// TODO: implement a filter to exclude channels that whose cannot be restored.
 			thingState.Channels = append(thingState.Channels, channelState)
 		}
 		if len(thingState.Channels) > 0 {
