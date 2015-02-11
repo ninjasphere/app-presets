@@ -45,7 +45,7 @@ func (pr *PresetsRouter) GetScene(r *http.Request, w http.ResponseWriter, params
 func (pr *PresetsRouter) GetScenes(r *http.Request, w http.ResponseWriter) {
 	r.ParseForm()
 	var scope string
-	if scopes, ok := r.Form["scope"]; !ok || len(scopes) == 0 {
+	if scopes, ok := r.Form["scope"]; !ok || len(scopes) == 0 || scopes[0] == "site" {
 		siteID := config.MustString("siteId")
 		scope = fmt.Sprintf("site/%s", siteID)
 	} else {
