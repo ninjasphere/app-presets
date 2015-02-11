@@ -119,7 +119,9 @@ func (ps *PresetsService) FetchScenePrototype(scope string) (*model.Scene, error
 	thingClient := ps.Conn.GetServiceClient("$home/services/ThingModel")
 	things := make([]*nmodel.Thing, 0)
 	keptThings := make([]*nmodel.Thing, 0, len(things))
-	thingClient.Call("fetchAll", nil, &things, defaultTimeout)
+	if err := thingClient.Call("fetchAll", nil, &things, defaultTimeout); err != nil {
+		return nil, err
+	}
 
 	for _, t := range things {
 		if !t.Promoted ||
