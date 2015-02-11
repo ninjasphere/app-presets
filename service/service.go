@@ -229,9 +229,19 @@ func (ps *PresetsService) StoreScene(model *model.Scene) (*model.Scene, error) {
 // see: http://schema.ninjablocks.com/service/presets#applyScene
 func (ps *PresetsService) ApplyScene(id string) error {
 	ps.checkInit()
-	if _, err := ps.FetchScene(id); err != nil {
+	if scene, err := ps.FetchScene(id); err != nil {
 		return err
 	} else {
+		for _, t := range scene.Things {
+			for _, c := range t.Channels {
+				topic := fmt.Sprintf("$thing/%s/channel/%s", t.ID, c.ID)
+				client := ps.Conn.GetServiceClient(topic)
+				if err := client.Call("set", c.State, nil, defaultTimeout); err != nil {
+					ps.Log.Warningf("Call to %s failed: %v", topic, err)
+				}
+			}
+		}
+
 		return nil
 	}
 }
