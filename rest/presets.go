@@ -53,7 +53,7 @@ func (pr *PresetsRouter) GetScenes(r *http.Request, w http.ResponseWriter) {
 	var scope string
 	if scopes, ok := r.Form["scope"]; !ok || len(scopes) == 0 || scopes[0] == "site" {
 		siteID := config.MustString("siteId")
-		scope = fmt.Sprintf("site/%s", siteID)
+		scope = fmt.Sprintf("site:%s", siteID)
 	} else {
 		scope = scopes[0]
 	}
@@ -72,11 +72,11 @@ func (pr *PresetsRouter) PutScene(r *http.Request, w http.ResponseWriter, params
 
 func (pr *PresetsRouter) GetSitePrototype(r *http.Request, w http.ResponseWriter) {
 	siteID := config.MustString("siteId")
-	prototype, err := pr.presets.FetchScenePrototype(fmt.Sprintf("site/%s", siteID))
+	prototype, err := pr.presets.FetchScenePrototype(fmt.Sprintf("site:%s", siteID))
 	writeResponse(400, w, prototype, err)
 }
 
 func (pr *PresetsRouter) GetRoomPrototype(r *http.Request, w http.ResponseWriter, params martini.Params) {
-	prototype, err := pr.presets.FetchScenePrototype(fmt.Sprintf("room/%s", params["roomID"]))
+	prototype, err := pr.presets.FetchScenePrototype(fmt.Sprintf("room:%s", params["roomID"]))
 	writeResponse(400, w, prototype, err)
 }

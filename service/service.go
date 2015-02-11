@@ -112,9 +112,18 @@ func (ps *PresetsService) FetchScenePrototype(scope string) (*model.Scene, error
 	ps.checkInit()
 
 	location := ""
-	roomOffset := strings.Index(scope, "room/")
+	roomOffset := strings.Index(scope, "room:")
 	if roomOffset >= 0 {
 		location = scope[roomOffset:]
+	}
+	siteOffset := strings.Index(scope, "site:")
+	if siteOffset >= 0 {
+		check := scope[siteOffset:]
+		siteID := config.MustString("siteId")
+		if check != siteID {
+			return fmt.Errorf("cannot configure presets for foreign site: %s", check)
+		}
+
 	}
 	thingClient := ps.Conn.GetServiceClient("$home/services/ThingModel")
 	things := make([]*nmodel.Thing, 0)
