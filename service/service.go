@@ -94,9 +94,11 @@ func (ps *PresetsService) FetchScene(id string) (*model.Scene, error) {
 
 const defaultTimeout = 10 * time.Second
 
+var excludedChannels []string = []string{}
+
 func copyState(ch *nmodel.Channel) interface{} {
 	if ch.LastState != nil {
-		if state := ch.LastState.(map[string]interface{}), ok; ok {
+		if state, ok := ch.LastState.(map[string]interface{}); ok {
 			if payload, ok := state["payload"]; ok {
 				return payload
 			}
@@ -138,12 +140,36 @@ func (ps *PresetsService) FetchScenePrototype(scope string) (*model.Scene, error
 			ID:       t.ID,
 			Channels: make([]model.ChannelState, 0, len(*t.Device.Channels)),
 		}
+	Channels:
 		for _, c := range *t.Device.Channels {
+
+			for _, x := range excludedChannels {
+				// don't include channels with excluded schema
+				if x == c.Schema {
+					continue Channels
+				}
+			}
+
+			if c.SupportedMethods == nil {
+				// don't include channels with no supported methods
+				continue
+			}
+
+			found := false
+			for _, m := range *c.SupportedMethods {
+				found = (m == "set")
+				if found {
+					break
+				}
+			}
+			if !found {
+				// don't include channels that do not support the set method
+				continue
+			}
 			channelState := model.ChannelState{
 				ID:    c.ID,
 				State: copyState(c),
 			}
-			// TODO: implement a filter to exclude channels that whose cannot be restored.
 			thingState.Channels = append(thingState.Channels, channelState)
 		}
 		if len(thingState.Channels) > 0 {
