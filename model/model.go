@@ -3,7 +3,7 @@ package model
 
 // A ChannelState represents the state of a single channel.
 type ChannelState struct {
-	ID    string      `json:"id,omitempty"`
+	ID    string      `json:"id"`
 	State interface{} `json:"state,omitempty"`
 }
 
@@ -11,7 +11,7 @@ type ChannelState struct {
 // a list of channel states and a boolean which indicates whether the thing is
 // included in the scene.
 type ThingState struct {
-	ID       string         `json:"id,omitempty"`
+	ID       string         `json:"id"`
 	Channels []ChannelState `json:"channels"`
 }
 
@@ -20,15 +20,15 @@ type ThingState struct {
 // UI menu, a label which provides a human readable label for a scene, a scope which restricts the
 // set of selectable things and a list of thing states.
 type Scene struct {
-	ID     string       `json:"id,omitempty"`
-	Slot   int          `json:"slot,omitempty"`
-	Label  string       `json:"label,omitempty"`
-	Scope  string       `json:"scope,omitempty"`
+	ID     string       `json:"id"`
+	Slot   int          `json:"slot"`
+	Label  string       `json:"label"`
+	Scope  string       `json:"scope"`
 	Things []ThingState `json:"things"`
 }
 
 // A Presets object is a collection of Scenes.
 type Presets struct {
-	Version string   `json:"version,omitempty"`
+	Version string   `json:"version"`
 	Scenes  []*Scene `json:"scenes"`
 }
