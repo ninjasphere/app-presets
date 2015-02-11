@@ -142,7 +142,6 @@ func (ps *PresetsService) FetchScenePrototype(scope string) (*model.Scene, error
 			ID:       t.ID,
 			Channels: make([]model.ChannelState, 0, len(*t.Device.Channels)),
 		}
-		channelIndex := make(map[string]int)
 	Channels:
 		for _, c := range *t.Device.Channels {
 
@@ -169,45 +168,15 @@ func (ps *PresetsService) FetchScenePrototype(scope string) (*model.Scene, error
 				// don't include channels that do not support the set method
 				continue
 			}
+			state := copyState(c)
+			if state == nil {
+				continue
+			}
 			channelState := model.ChannelState{
-				ID: c.ID,
+				ID:    c.ID,
+				State: state,
 			}
-			channelIndex[c.ID] = len(thingState.Channels)
 			thingState.Channels = append(thingState.Channels, channelState)
-		}
-
-		// refresh the Thing to get the latest channel states
-
-		refreshedThing := &nmodel.Thing{}
-		if err := thingClient.Call("fetch", thingState.ID, &refreshedThing, defaultTimeout); err != nil {
-			ps.Log.Errorf("error while refreshing thing %s: %v", thingState.ID, err)
-			continue
-		}
-		if refreshedThing.Device == nil || refreshedThing.Device.Channels == nil {
-			continue
-		}
-
-		for _, c := range *refreshedThing.Device.Channels {
-			if x, ok := channelIndex[c.ID]; ok {
-				thingState.Channels[x].State = copyState(c)
-			}
-		}
-
-		// remove channels for which we don't have state.
-
-		j := 0
-		for i, c := range thingState.Channels {
-			if c.State != nil {
-				if i != j {
-					thingState.Channels[j] = thingState.Channels[i]
-				}
-				j++
-			} else {
-				ps.Log.Debugf("Skipping channel %v of thing %v because no current state available", c.ID, thingState.ID)
-			}
-		}
-		if j != len(thingState.Channels) {
-			thingState.Channels = thingState.Channels[0:j]
 		}
 
 		if len(thingState.Channels) > 0 {
