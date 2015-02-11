@@ -65,13 +65,6 @@ func (ps *PresetsService) checkInit() {
 	}
 }
 
-// see: http://schema.ninjablocks.com/service/presets#listPresetable
-func (ps *PresetsService) ListPresetable(scope string) (*[]*model.ThingState, error) {
-	ps.checkInit()
-	slice := make([]*model.ThingState, 0, 0)
-	return &slice, fmt.Errorf("unimplemented function: ListPresetable")
-}
-
 // see: http://schema.ninjablocks.com/service/presets#fetchScenes
 func (ps *PresetsService) FetchScenes(scope string) (*[]*model.Scene, error) {
 	ps.checkInit()
@@ -95,6 +88,12 @@ func (ps *PresetsService) FetchScene(id string) (*model.Scene, error) {
 	return nil, fmt.Errorf("No such scene: %s", id)
 }
 
+// see: http://schema.ninjablocks.com/service/presets#fetchScenePrototype
+func (ps *PresetsService) FetchScenePrototype(scope string) (*model.Scene, error) {
+	ps.checkInit()
+	return nil, fmt.Errorf("Not implemented: FetchScenePrototype")
+}
+
 // see: http://schema.ninjablocks.com/service/presets#storeScene
 func (ps *PresetsService) StoreScene(model *model.Scene) (*model.Scene, error) {
 	ps.checkInit()
@@ -102,6 +101,10 @@ func (ps *PresetsService) StoreScene(model *model.Scene) (*model.Scene, error) {
 
 	if model.Scope == "" {
 		return nil, fmt.Errorf("illegal argument: model.Scope is empty")
+	}
+
+	if model.ID == "prototype" {
+		return nil, fmt.Errorf("illegal argument: model.ID == \"prototype\"")
 	}
 
 	for i, m := range ps.Model.Scenes {
