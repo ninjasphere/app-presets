@@ -121,7 +121,7 @@ func (ps *PresetsService) FetchScenePrototype(scope string) (*model.Scene, error
 		check := scope[siteOffset:]
 		siteID := config.MustString("siteId")
 		if check != siteID {
-			return fmt.Errorf("cannot configure presets for foreign site: %s", check)
+			return nil, fmt.Errorf("cannot configure presets for foreign site: %s", check)
 		}
 
 	}
