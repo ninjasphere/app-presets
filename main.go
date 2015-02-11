@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"github.com/ninjasphere/app-presets/model"
+	"github.com/ninjasphere/app-presets/rest"
 	"github.com/ninjasphere/app-presets/service"
 	"github.com/ninjasphere/go-ninja/api"
 	"github.com/ninjasphere/go-ninja/support"
@@ -15,7 +16,8 @@ var (
 //SchedulerApp describes the scheduler application.
 type PresetsApp struct {
 	support.AppSupport
-	service *service.PresetsService
+	service    *service.PresetsService
+	restServer rest.RestServer
 }
 
 // Start is called after the ExportApp call is complete.
@@ -41,6 +43,11 @@ func (a *PresetsApp) Start(m *model.Presets) error {
 			return err
 		} else {
 			a.service = service
+			a.restServer.Log = a.Log
+			a.restServer.Presets = service
+		}
+		if err := a.restServer.Start(); err != nil {
+			return err
 		}
 	}
 	return nil
@@ -54,6 +61,7 @@ func (a *PresetsApp) Stop() error {
 	if tmp == nil {
 		return fmt.Errorf("The service is not started - action has been ignored.")
 	} else {
+		a.restServer.Stop()
 		tmp.Destroy()
 	}
 	return nil
