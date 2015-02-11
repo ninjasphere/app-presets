@@ -14,6 +14,10 @@ import (
 	"time"
 )
 
+const defaultTimeout = 10 * time.Second
+
+var excludedChannels []string = []string{}
+
 type Connection interface {
 	ExportService(service interface{}, topic string, ann *nmodel.ServiceAnnouncement) (*rpc.ExportedService, error)
 	GetServiceClient(serviceTopic string) *ninja.ServiceClient
@@ -91,10 +95,6 @@ func (ps *PresetsService) FetchScene(id string) (*model.Scene, error) {
 	}
 	return nil, fmt.Errorf("No such scene: %s", id)
 }
-
-const defaultTimeout = 10 * time.Second
-
-var excludedChannels []string = []string{}
 
 func copyState(ch *nmodel.Channel) interface{} {
 	if ch.LastState != nil {
