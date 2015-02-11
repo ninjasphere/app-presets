@@ -24,6 +24,7 @@ func (pr *PresetsRouter) Register(r martini.Router) {
 	r.Get("/prototype/site", pr.GetSitePrototype)
 	r.Get("/prototype/room/:roomID", pr.GetRoomPrototype)
 	r.Put("/:id", pr.PutScene)
+	r.Post("/:id/apply", pr.ApplyScene)
 	r.Get("", pr.GetScenes)
 	r.Post("", pr.PutScene)
 }
@@ -40,6 +41,11 @@ func writeResponse(code int, w http.ResponseWriter, response interface{}, err er
 func (pr *PresetsRouter) GetScene(r *http.Request, w http.ResponseWriter, params martini.Params) {
 	scene, err := pr.presets.FetchScene(params["id"])
 	writeResponse(400, w, scene, err)
+}
+
+func (pr *PresetsRouter) ApplyScene(r *http.Request, w http.ResponseWriter, params martini.Params) {
+	scene, err := pr.presets.ApplyScene(params["id"])
+	writeResponse(400, w, nil, err)
 }
 
 func (pr *PresetsRouter) GetScenes(r *http.Request, w http.ResponseWriter) {
