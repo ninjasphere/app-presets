@@ -94,6 +94,17 @@ func (ps *PresetsService) FetchScene(id string) (*model.Scene, error) {
 
 const defaultTimeout = 10 * time.Second
 
+func copyState(ch *nmodel.Channel) interface{} {
+	if ch.LastState != nil {
+		if state := ch.LastState.(map[string]interface{}), ok; ok {
+			if payload, ok := state["payload"]; ok {
+				return payload
+			}
+		}
+	}
+	return nil
+}
+
 // see: http://schema.ninjablocks.com/service/presets#fetchScenePrototype
 func (ps *PresetsService) FetchScenePrototype(scope string) (*model.Scene, error) {
 	ps.checkInit()
@@ -129,7 +140,8 @@ func (ps *PresetsService) FetchScenePrototype(scope string) (*model.Scene, error
 		}
 		for _, c := range *t.Device.Channels {
 			channelState := model.ChannelState{
-				ID: c.ID,
+				ID:    c.ID,
+				State: copyState(c),
 			}
 			// TODO: implement a filter to exclude channels that whose cannot be restored.
 			thingState.Channels = append(thingState.Channels, channelState)
