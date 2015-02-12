@@ -109,10 +109,6 @@ func (ps *PresetsService) DeleteScene(id string) (*model.Scene, error) {
 func (ps *PresetsService) DeleteScenes(scope string) (*[]*model.Scene, error) {
 	ps.checkInit()
 
-	if scope == "" {
-		scope = "site"
-	}
-
 	if scope, _, _, err := ps.parseScope(scope); err != nil {
 		return nil, err
 	} else {
