@@ -119,92 +119,116 @@ func copyState(ch *nmodel.Channel) interface{} {
 	return nil
 }
 
+func (ps *PresetsService) parseScope(scope string) (string, string, string, error) {
+	var err error
+	room := ""
+	siteID := ""
+
+	parts := strings.Split(scope, ":")
+	if len(parts) > 2 {
+		err = fmt.Errorf("illegal argument: scope has too many parts")
+	} else {
+		if len(parts) == 0 {
+			parts = []string{"site"}
+		}
+		switch parts[0] {
+		case "room":
+			room = parts[1]
+		case "site":
+			siteID = config.MustString("siteId")
+			if len(parts) == 2 && parts[1] != siteID {
+				err = fmt.Errorf("cannot configure presets for foreign site")
+			} else {
+				scope = fmt.Sprintf("site:%s", siteID)
+			}
+		default:
+			err = fmt.Errorf("illegal argument: scope has an unrecognized scheme")
+		}
+	}
+	if err != nil {
+		ps.Log.Errorf("bad scope: %s: %v", scope, err)
+	}
+	return scope, room, siteID, err
+
+}
+
 // see: http://schema.ninjablocks.com/service/presets#fetchScenePrototype
 func (ps *PresetsService) FetchScenePrototype(scope string) (*model.Scene, error) {
 	ps.checkInit()
 
-	location := ""
-	roomOffset := strings.Index(scope, "room:")
-	if roomOffset >= 0 {
-		location = scope[roomOffset:]
-	}
-	siteOffset := strings.Index(scope, "site:")
-	if siteOffset >= 0 {
-		check := scope[siteOffset:]
-		siteID := config.MustString("siteId")
-		if check != siteID {
-			return nil, fmt.Errorf("cannot configure presets for foreign site: %s", check)
-		}
-
-	}
-	thingClient := ps.Conn.GetServiceClient("$home/services/ThingModel")
-	things := make([]*nmodel.Thing, 0)
-	keptThings := make([]*nmodel.Thing, 0, len(things))
-	if err := thingClient.Call("fetchAll", nil, &things, defaultTimeout); err != nil {
+	if scope, room, _, err := ps.parseScope(scope); err != nil {
 		return nil, err
-	}
+	} else {
 
-	for _, t := range things {
-		if !t.Promoted ||
-			(location != "" && (t.Location == nil || *t.Location != location)) {
-			continue
+		thingClient := ps.Conn.GetServiceClient("$home/services/ThingModel")
+		things := make([]*nmodel.Thing, 0)
+		keptThings := make([]*nmodel.Thing, 0, len(things))
+		if err := thingClient.Call("fetchAll", nil, &things, defaultTimeout); err != nil {
+			return nil, err
 		}
-		keptThings = append(keptThings, t)
-	}
-	result := &model.Scene{
-		Scope:  scope,
-		Things: make([]model.ThingState, 0, len(keptThings)),
-	}
-	for _, t := range keptThings {
-		if t.Device == nil || t.Device.Channels == nil {
-			continue
-		}
-		thingState := model.ThingState{
-			ID:       t.ID,
-			Channels: make([]model.ChannelState, 0, len(*t.Device.Channels)),
-		}
-	Channels:
-		for _, c := range *t.Device.Channels {
 
-			for _, x := range excludedChannels {
-				// don't include channels with excluded schema
-				if x == c.Schema {
-					continue Channels
+		for _, t := range things {
+			if !t.Promoted ||
+				(room != "" && (t.Location == nil || *t.Location != room)) {
+				continue
+			}
+			keptThings = append(keptThings, t)
+		}
+		result := &model.Scene{
+			Scope:  scope,
+			Things: make([]model.ThingState, 0, len(keptThings)),
+		}
+		for _, t := range keptThings {
+			if t.Device == nil || t.Device.Channels == nil {
+				continue
+			}
+			thingState := model.ThingState{
+				ID:       t.ID,
+				Channels: make([]model.ChannelState, 0, len(*t.Device.Channels)),
+			}
+		Channels:
+			for _, c := range *t.Device.Channels {
+
+				for _, x := range excludedChannels {
+					// don't include channels with excluded schema
+					if x == c.Schema {
+						continue Channels
+					}
 				}
-			}
 
-			if c.SupportedMethods == nil {
-				// don't include channels with no supported methods
-				continue
-			}
-
-			found := false
-			for _, m := range *c.SupportedMethods {
-				found = (m == "set")
-				if found {
-					break
+				if c.SupportedMethods == nil {
+					// don't include channels with no supported methods
+					continue
 				}
-			}
-			if !found {
-				// don't include channels that do not support the set method
-				continue
-			}
-			state := copyState(c)
-			if state == nil {
-				continue
-			}
-			channelState := model.ChannelState{
-				ID:    c.ID,
-				State: state,
-			}
-			thingState.Channels = append(thingState.Channels, channelState)
-		}
 
-		if len(thingState.Channels) > 0 {
-			result.Things = append(result.Things, thingState)
+				found := false
+				for _, m := range *c.SupportedMethods {
+					found = (m == "set")
+					if found {
+						break
+					}
+				}
+				if !found {
+					// don't include channels that do not support the set method
+					continue
+				}
+				state := copyState(c)
+				if state == nil {
+					continue
+				}
+				channelState := model.ChannelState{
+					ID:    c.ID,
+					State: state,
+				}
+				thingState.Channels = append(thingState.Channels, channelState)
+			}
+
+			if len(thingState.Channels) > 0 {
+				result.Things = append(result.Things, thingState)
+			}
 		}
+		return result, nil
 	}
-	return result, nil
 }
 
 // see: http://schema.ninjablocks.com/service/presets#storeScene
