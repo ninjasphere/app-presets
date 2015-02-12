@@ -79,6 +79,9 @@ func (ps *PresetsService) FetchScenes(scope string) (*[]*model.Scene, error) {
 func (ps *PresetsService) FetchScene(id string) (*model.Scene, error) {
 	ps.checkInit()
 
+	if id == "" {
+		return nil, fmt.Errorf("illegal argument: id is empty")
+	}
 	result := ps.copyScenes(ps.match(matchSpec{id: &id}))
 	if len(result) == 1 {
 		return result[0], nil
@@ -89,6 +92,10 @@ func (ps *PresetsService) FetchScene(id string) (*model.Scene, error) {
 // see: http://schema.ninjablocks.com/service/presets#deleteScene
 func (ps *PresetsService) DeleteScene(id string) (*model.Scene, error) {
 	ps.checkInit()
+
+	if id == "" {
+		return nil, fmt.Errorf("illegal argument: id is empty")
+	}
 
 	found := ps.match(matchSpec{id: &id})
 	if len(found) == 1 {
