@@ -44,6 +44,9 @@ func (ps *PresetsService) parseScope(scope string) (string, string, string, erro
 	room := ""
 	siteID := ""
 
+	if scope == "" {
+		return "", "", "", nil
+	}
 	parts := strings.Split(scope, ":")
 	if len(parts) > 2 {
 		err = fmt.Errorf("illegal argument: scope has too many parts")
