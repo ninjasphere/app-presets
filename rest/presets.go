@@ -66,7 +66,16 @@ func (pr *PresetsRouter) PutScene(r *http.Request, w http.ResponseWriter, params
 	scene := &model.Scene{}
 	json.NewDecoder(r.Body).Decode(scene)
 	scene.ID = params["id"]
-
+	r.ParseForm()
+	if slots, ok := r.Form["slot"]; ok {
+		slot := 0
+		if n, err := fmt.Sscanf(slots[0], "%d", &slot); n == 1 && err == nil {
+			scene.Slot = slot
+		}
+	}
+	if labels, ok := r.Form["label"]; ok {
+		scene.Label = labels[0]
+	}
 	scene, err := pr.presets.StoreScene(scene)
 	writeResponse(400, w, scene, err)
 }
