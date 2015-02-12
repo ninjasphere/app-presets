@@ -59,7 +59,7 @@ func (pr *PresetsRouter) GetScenes(r *http.Request, w http.ResponseWriter) {
 		scope = scopes[0]
 	}
 	scenes, err := pr.presets.FetchScenes(scope)
-	writeResponse(400, w, *scenes, err)
+	writeResponse(400, w, scenes, err)
 }
 
 func (pr *PresetsRouter) PutScene(r *http.Request, w http.ResponseWriter, params martini.Params) {

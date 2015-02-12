@@ -10,7 +10,6 @@ import (
 	"github.com/ninjasphere/go-ninja/logger"
 	nmodel "github.com/ninjasphere/go-ninja/model"
 	"github.com/ninjasphere/go-ninja/rpc"
-	"strings"
 	"time"
 )
 
@@ -64,96 +63,55 @@ func (ps *PresetsService) Destroy() error {
 	return nil
 }
 
-func (ps *PresetsService) checkInit() {
-	if ps.Log == nil {
-		ps.Log = logger.GetLogger("com.ninja.app-presets")
-	}
-	if !ps.initialized {
-		ps.Log.Fatalf("illegal state: the service is not initialized")
-	}
-}
-
 // see: http://schema.ninjablocks.com/service/presets#fetchScenes
 func (ps *PresetsService) FetchScenes(scope string) (*[]*model.Scene, error) {
 	ps.checkInit()
 	if scope, _, _, err := ps.parseScope(scope); err != nil {
 		return nil, err
 	} else {
-		collect := make([]*model.Scene, 0, 0)
-		for _, m := range ps.Model.Scenes {
-			if m.Scope == scope {
-				collect = append(collect, m)
-			}
-		}
-		return &collect, nil
+		found := ps.match(matchSpec{scope: &scope})
+		result := ps.copyScenes(found)
+		return &result, nil
 	}
 }
 
 // see: http://schema.ninjablocks.com/service/presets#fetchScene
 func (ps *PresetsService) FetchScene(id string) (*model.Scene, error) {
 	ps.checkInit()
-	for _, m := range ps.Model.Scenes {
-		if m.ID == id {
-			return m, nil
-		}
+
+	result := ps.copyScenes(ps.match(matchSpec{id: &id}))
+	if len(result) == 1 {
+		return result[0], nil
 	}
-	return nil, fmt.Errorf("No such scene: %s", id)
+	return nil, fmt.Errorf("object not found: %s", id)
 }
 
 // see: http://schema.ninjablocks.com/service/presets#deleteScene
 func (ps *PresetsService) DeleteScene(id string) (*model.Scene, error) {
 	ps.checkInit()
-	for i, m := range ps.Model.Scenes {
-		if m.ID == id {
-			ps.Model.Scenes = append(ps.Model.Scenes[0:i], ps.Model.Scenes[i+1:]...)
-			return m, nil
-		}
-	}
-	return nil, fmt.Errorf("No such scene: %s", id)
-}
 
-func copyState(ch *nmodel.Channel) interface{} {
-	if ch.LastState != nil {
-		if state, ok := ch.LastState.(map[string]interface{}); ok {
-			if payload, ok := state["payload"]; ok {
-				return payload
-			}
-		}
-	}
-	return nil
-}
-
-func (ps *PresetsService) parseScope(scope string) (string, string, string, error) {
-	var err error
-	room := ""
-	siteID := ""
-
-	parts := strings.Split(scope, ":")
-	if len(parts) > 2 {
-		err = fmt.Errorf("illegal argument: scope has too many parts")
+	found := ps.match(matchSpec{id: &id})
+	if len(found) == 1 {
+		return ps.deleteAll(found)[0], nil
 	} else {
-		if len(parts) == 0 {
-			parts = []string{"site"}
-		}
-		switch parts[0] {
-		case "room":
-			room = parts[1]
-		case "site":
-			siteID = config.MustString("siteId")
-			if len(parts) == 2 && parts[1] != siteID {
-				err = fmt.Errorf("cannot configure presets for foreign site")
-			} else {
-				scope = fmt.Sprintf("site:%s", siteID)
-			}
-		default:
-			err = fmt.Errorf("illegal argument: scope has an unrecognized scheme")
-		}
+		return nil, fmt.Errorf("object not found: %s", id)
 	}
-	if err != nil {
-		ps.Log.Errorf("bad scope: %s: %v", scope, err)
-	}
-	return scope, room, siteID, err
+}
 
+// see: http://schema.ninjablocks.com/service/presets#deleteScenes
+func (ps *PresetsService) DeleteScenes(scope string) (*[]*model.Scene, error) {
+	ps.checkInit()
+
+	if scope == "" {
+		scope = "site"
+	}
+
+	if scope, _, _, err := ps.parseScope(scope); err != nil {
+		return nil, err
+	} else {
+		result := ps.deleteAll(ps.match(matchSpec{scope: &scope}))
+		return &result, nil
+	}
 }
 
 // see: http://schema.ninjablocks.com/service/presets#fetchScenePrototype
@@ -249,30 +207,30 @@ func (ps *PresetsService) StoreScene(model *model.Scene) (*model.Scene, error) {
 		model.Label = fmt.Sprintf("Preset %d", model.Slot)
 	}
 
-	found := -1
-	for i, m := range ps.Model.Scenes {
-		if model.ID == "" {
-			if m.Scope == model.Scope && m.Slot == model.Slot {
-				found = i
-				break
-			}
-		} else {
-			if m.ID == model.ID {
-				found = i
-				break
-			}
-		}
-	}
-
 	if model.ID == "" {
 		model.ID = uuid.NewUUID().String()
 	}
 
-	if found < 0 {
+	if model.Slot <= 0 {
+		model.Slot = 1
+	}
+
+	found := ps.match(matchSpec{
+		id:    &model.ID,
+		scope: &model.Scope,
+		slot:  &model.Slot,
+	})
+
+	if len(found) > 1 {
+		ps.deleteAll(found[1:])
+	}
+
+	if len(found) < 1 {
 		ps.Model.Scenes = append(ps.Model.Scenes, model)
 	} else {
-		ps.Model.Scenes[found] = model
+		ps.Model.Scenes[found[0]] = model
 	}
+
 	ps.Save(ps.Model)
 	return model, nil
 }
