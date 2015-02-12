@@ -69,7 +69,7 @@ func (ps *PresetsService) FetchScenes(scope string) (*[]*model.Scene, error) {
 	if scope, _, _, err := ps.parseScope(scope); err != nil {
 		return nil, err
 	} else {
-		found := ps.match(matchSpec{scope: &scope})
+		found := ps.match(&model.Query{Scope: &scope})
 		result := ps.copyScenes(found)
 		return &result, nil
 	}
@@ -82,7 +82,7 @@ func (ps *PresetsService) FetchScene(id string) (*model.Scene, error) {
 	if id == "" {
 		return nil, fmt.Errorf("illegal argument: id is empty")
 	}
-	result := ps.copyScenes(ps.match(matchSpec{id: &id}))
+	result := ps.copyScenes(ps.match(&model.Query{ID: &id}))
 	if len(result) == 1 {
 		return result[0], nil
 	}
@@ -97,7 +97,7 @@ func (ps *PresetsService) DeleteScene(id string) (*model.Scene, error) {
 		return nil, fmt.Errorf("illegal argument: id is empty")
 	}
 
-	found := ps.match(matchSpec{id: &id})
+	found := ps.match(&model.Query{ID: &id})
 	if len(found) == 1 {
 		return ps.deleteAll(found)[0], nil
 	} else {
@@ -112,7 +112,7 @@ func (ps *PresetsService) DeleteScenes(scope string) (*[]*model.Scene, error) {
 	if scope, _, _, err := ps.parseScope(scope); err != nil {
 		return nil, err
 	} else {
-		result := ps.deleteAll(ps.match(matchSpec{scope: &scope}))
+		result := ps.deleteAll(ps.match(&model.Query{Scope: &scope}))
 		return &result, nil
 	}
 }
@@ -201,35 +201,35 @@ func (ps *PresetsService) FetchScenePrototype(scope string) (*model.Scene, error
 }
 
 // see: http://schema.ninjablocks.com/service/presets#storeScene
-func (ps *PresetsService) StoreScene(model *model.Scene) (*model.Scene, error) {
+func (ps *PresetsService) StoreScene(m *model.Scene) (*model.Scene, error) {
 	ps.checkInit()
 
-	if model.Scope == "" {
-		model.Scope = "site"
+	if m.Scope == "" {
+		m.Scope = "site"
 	}
 
-	if scope, _, _, err := ps.parseScope(model.Scope); err != nil {
+	if scope, _, _, err := ps.parseScope(m.Scope); err != nil {
 		return nil, err
 	} else {
-		model.Scope = scope
+		m.Scope = scope
 	}
 
-	if model.ID == "" {
-		model.ID = uuid.NewUUID().String()
+	if m.ID == "" {
+		m.ID = uuid.NewUUID().String()
 	}
 
-	if model.Slot <= 0 {
-		model.Slot = 1
+	if m.Slot <= 0 {
+		m.Slot = 1
 	}
 
-	if model.Label == "" {
-		model.Label = fmt.Sprintf("Preset %d", model.Slot)
+	if m.Label == "" {
+		m.Label = fmt.Sprintf("Preset %d", m.Slot)
 	}
 
-	found := ps.match(matchSpec{
-		id:    &model.ID,
-		scope: &model.Scope,
-		slot:  &model.Slot,
+	found := ps.match(&model.Query{
+		ID:    &m.ID,
+		Scope: &m.Scope,
+		Slot:  &m.Slot,
 	})
 
 	if len(found) > 1 {
@@ -237,13 +237,13 @@ func (ps *PresetsService) StoreScene(model *model.Scene) (*model.Scene, error) {
 	}
 
 	if len(found) < 1 {
-		ps.Model.Scenes = append(ps.Model.Scenes, model)
+		ps.Model.Scenes = append(ps.Model.Scenes, m)
 	} else {
-		ps.Model.Scenes[found[0]] = model
+		ps.Model.Scenes[found[0]] = m
 	}
 
 	ps.Save(ps.Model)
-	return model, nil
+	return m, nil
 }
 
 // see: http://schema.ninjablocks.com/service/presets#applyScene

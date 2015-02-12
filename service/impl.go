@@ -10,12 +10,6 @@ import (
 	"strings"
 )
 
-type matchSpec struct {
-	id    *string
-	scope *string
-	slot  *int
-}
-
 // check that the service has been initialized
 func (ps *PresetsService) checkInit() {
 	if ps.Log == nil {
@@ -76,14 +70,14 @@ func (ps *PresetsService) parseScope(scope string) (string, string, string, erro
 }
 
 // find the indicies of all matching scenes
-func (ps *PresetsService) match(spec matchSpec) []int {
+func (ps *PresetsService) match(spec *model.Query) []int {
 	found := make([]int, 0, len(ps.Model.Scenes))
 
-	if spec.scope != nil && *spec.scope == "" {
-		spec.scope = nil
+	if spec.Scope != nil && *spec.Scope == "" {
+		spec.Scope = nil
 	}
 
-	matchAll := spec.scope == nil && spec.id == nil && spec.slot == nil
+	matchAll := spec.Scope == nil && spec.ID == nil && spec.Slot == nil
 
 	for i, m := range ps.Model.Scenes {
 
@@ -92,9 +86,9 @@ func (ps *PresetsService) match(spec matchSpec) []int {
 		} else {
 			// look for the index of all matching scenes
 
-			if spec.scope != nil && m.Scope == *spec.scope {
-				if spec.slot != nil {
-					if m.Slot == *spec.slot {
+			if spec.Scope != nil && m.Scope == *spec.Scope {
+				if spec.Slot != nil {
+					if m.Slot == *spec.Slot {
 						found = append(found, i)
 						continue
 					}
@@ -104,7 +98,7 @@ func (ps *PresetsService) match(spec matchSpec) []int {
 				}
 			}
 
-			if spec.id != nil && m.ID == *spec.id {
+			if spec.ID != nil && m.ID == *spec.ID {
 				found = append(found, i)
 				continue
 			}

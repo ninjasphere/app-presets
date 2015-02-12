@@ -32,3 +32,10 @@ type Presets struct {
 	Version string   `json:"version"`
 	Scenes  []*Scene `json:"scenes"`
 }
+
+// A Query object can be used to restrict a query to a subset of scenes.
+type Query struct {
+	Scope *string `json:"scope,omitempty"`
+	Slot  *int    `json:"slot,omitempty"`
+	ID    *string `json:"id,omitempty"`
+}
