@@ -63,7 +63,7 @@ set to the API prefix of your sphere, e.g.:
 
 ### Store the current state in a site-scoped preset 1 with label "from-curl"
 
-	curl -s ${API}/prototype/site | curl -s -d @- "${API}/?slot=1&label=from-curl" | jq .
+	curl -s ${API}/prototype/site | curl -s -d @- "${API}?slot=1&label=from-curl" | jq .
 
 ### List all existing presets
 
@@ -71,15 +71,15 @@ set to the API prefix of your sphere, e.g.:
 
 ### List all existing site-scoped presets
 
-	curl -s ${API}/?scope=site | jq .
+	curl -s ${API}?scope=site | jq .
 
 ### List all existing room-scoped presets
 
-	curl -s ${API}/?scope=room:{room-id} | jq .
+	curl -s ${API}?scope=room:{room-id} | jq .
 
 ### Apply site preset # 1
 
-	ID=$(curl -s "${API}/?slot=1&scope=site" | jq -r '.[]|.id') &&
+	ID=$(curl -s "${API}?slot=1&scope=site" | jq -r '.[]|.id') &&
 	curl -s -X POST "${API}/$ID/apply"
 
 ### Delete all presets
