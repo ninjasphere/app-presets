@@ -76,13 +76,17 @@ func (ps *PresetsService) checkInit() {
 // see: http://schema.ninjablocks.com/service/presets#fetchScenes
 func (ps *PresetsService) FetchScenes(scope string) (*[]*model.Scene, error) {
 	ps.checkInit()
-	collect := make([]*model.Scene, 0, 0)
-	for _, m := range ps.Model.Scenes {
-		if m.Scope == scope {
-			collect = append(collect, m)
+	if scope, _, _, err := ps.parseScope(scope); err != nil {
+		return nil, err
+	} else {
+		collect := make([]*model.Scene, 0, 0)
+		for _, m := range ps.Model.Scenes {
+			if m.Scope == scope {
+				collect = append(collect, m)
+			}
 		}
+		return &collect, nil
 	}
-	return &collect, nil
 }
 
 // see: http://schema.ninjablocks.com/service/presets#fetchScene
@@ -235,8 +239,10 @@ func (ps *PresetsService) FetchScenePrototype(scope string) (*model.Scene, error
 func (ps *PresetsService) StoreScene(model *model.Scene) (*model.Scene, error) {
 	ps.checkInit()
 
-	if model.Scope == "" {
-		return nil, fmt.Errorf("illegal argument: model.Scope is empty")
+	if scope, _, _, err := ps.parseScope(model.Scope); err != nil {
+		return nil, err
+	} else {
+		model.Scope = scope
 	}
 
 	if model.Label == "" {
