@@ -54,3 +54,26 @@ Answers a JSON object which contains a prototype scene containing the current st
 ####GET /rest/v1/presets/prototype/room/{room-id}
 Answers a JSON object which contains a prototype scene containing the current states of each presetable thing in the specified room.
 
+##Examples
+
+The following examples show how to use the API with 'curl' and 'jq' to achieve various tasks relating to setting and getting presets.
+
+### Store the current state in a site-scoped preset 1 with label "from-curl"
+
+	curl -s http://${SPHERE:-ninjasphere}:8101/rest/v1/presets/prototype/site | curl -d @- "http://${SPHERE:-ninjasphere}:8101/rest/v1/presets?slot=1&label=from-curl" | jq .
+
+### List all existing presets
+
+	curl -s http://${SPHERE:-ninjasphere}:8101/rest/v1/presets | jq .
+
+### List all existing site-scoped presets
+
+	curl -s http://${SPHERE:-ninjasphere}:8101/rest/v1/presets?scope=site | jq .
+
+### List all existing room-scoped presets
+
+	curl -s http://${SPHERE:-ninjasphere}:8101/rest/v1/presets?scope=room:{room-id} | jq .
+
+### Delete all presets
+
+	curl -s -X DELETE http://${SPHERE:-ninjasphere}:8101/rest/v1/presets | jq .
