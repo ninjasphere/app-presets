@@ -74,6 +74,11 @@ The following examples show how to use the API with 'curl' and 'jq' to achieve v
 
 	curl -s http://${SPHERE:-ninjasphere}:8101/rest/v1/presets?scope=room:{room-id} | jq .
 
+### Apply site preset # 1
+
+	ID=$(curl -s 'http://${SPHERE:-ninjasphere}:8101/rest/v1/presets?slot=1&scope=site' | jq -r '.[]|.id') &&
+	curl -s -X POST "http://${SPHERE:-ninjasphere}:8101/rest/v1/presets/$ID/apply"
+
 ### Delete all presets
 
 	curl -s -X DELETE http://${SPHERE:-ninjasphere}:8101/rest/v1/presets | jq .
