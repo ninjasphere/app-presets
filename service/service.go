@@ -204,6 +204,10 @@ func (ps *PresetsService) FetchScenePrototype(scope string) (*model.Scene, error
 func (ps *PresetsService) StoreScene(model *model.Scene) (*model.Scene, error) {
 	ps.checkInit()
 
+	if model.Scope == "" {
+		model.Scope = "site"
+	}
+
 	if scope, _, _, err := ps.parseScope(model.Scope); err != nil {
 		return nil, err
 	} else {
