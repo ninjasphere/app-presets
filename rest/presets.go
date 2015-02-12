@@ -40,6 +40,24 @@ func writeResponse(code int, w http.ResponseWriter, response interface{}, err er
 	}
 }
 
+func query(r *http.Request) *model.Query {
+	result := &model.Query{}
+	r.ParseForm()
+	if scopes, ok := r.Form["scope"]; ok {
+		result.Scope = &scopes[0]
+	}
+	if ids, ok := r.Form["id"]; ok {
+		result.ID = &ids[0]
+	}
+	if slots, ok := r.Form["slot"]; ok {
+		slot := 0
+		if n, err := fmt.Sscanf(slots[0], "%d", &slot); n == 1 && err == nil {
+			result.Slot = &slot
+		}
+	}
+	return result
+}
+
 func (pr *PresetsRouter) GetScene(r *http.Request, w http.ResponseWriter, params martini.Params) {
 	id := params["id"]
 	scenes, err := pr.presets.FetchScenes(&model.Query{ID: &id})
@@ -56,14 +74,8 @@ func (pr *PresetsRouter) ApplyScene(r *http.Request, w http.ResponseWriter, para
 }
 
 func (pr *PresetsRouter) GetScenes(r *http.Request, w http.ResponseWriter) {
-	r.ParseForm()
-	var scope string
-	if scopes, ok := r.Form["scope"]; ok {
-		scope = scopes[0]
-	} else {
-		scope = ""
-	}
-	scenes, err := pr.presets.FetchScenes(&model.Query{Scope: &scope})
+	q := query(r)
+	scenes, err := pr.presets.FetchScenes(q)
 	writeResponse(400, w, scenes, err)
 }
 
@@ -96,14 +108,8 @@ func (pr *PresetsRouter) DeleteScene(r *http.Request, w http.ResponseWriter, par
 }
 
 func (pr *PresetsRouter) DeleteScenes(r *http.Request, w http.ResponseWriter, params martini.Params) {
-	var scope string
-	r.ParseForm()
-	if scopes, ok := r.Form["scope"]; ok {
-		scope = scopes[0]
-	} else {
-		scope = ""
-	}
-	scenes, err := pr.presets.DeleteScenes(&model.Query{Scope: &scope})
+	q := query(r)
+	scenes, err := pr.presets.DeleteScenes(q)
 	writeResponse(400, w, scenes, err)
 }
 
