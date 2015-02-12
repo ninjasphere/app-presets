@@ -210,16 +210,16 @@ func (ps *PresetsService) StoreScene(model *model.Scene) (*model.Scene, error) {
 		model.Scope = scope
 	}
 
-	if model.Label == "" {
-		model.Label = fmt.Sprintf("Preset %d", model.Slot)
-	}
-
 	if model.ID == "" {
 		model.ID = uuid.NewUUID().String()
 	}
 
 	if model.Slot <= 0 {
 		model.Slot = 1
+	}
+
+	if model.Label == "" {
+		model.Label = fmt.Sprintf("Preset %d", model.Slot)
 	}
 
 	found := ps.match(matchSpec{
