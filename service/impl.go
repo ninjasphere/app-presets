@@ -33,15 +33,17 @@ func copyState(ch *nmodel.Channel) interface{} {
 }
 
 // parse a scope parameter and return the normalized form and the components
-func (ps *PresetsService) parseScope(scope string) (string, string, string, error) {
+func (ps *PresetsService) parseScope(scope *string) (string, string, string, error) {
 	var err error
 	room := ""
 	siteID := ""
+	resultScope := ""
 
-	if scope == "" {
+	if scope == nil || *scope == "" {
 		return "", "", "", nil
 	}
-	parts := strings.Split(scope, ":")
+	resultScope = *scope
+	parts := strings.Split(resultScope, ":")
 	if len(parts) > 2 {
 		err = fmt.Errorf("illegal argument: scope has too many parts")
 	} else {
@@ -56,7 +58,7 @@ func (ps *PresetsService) parseScope(scope string) (string, string, string, erro
 			if len(parts) == 2 && parts[1] != siteID {
 				err = fmt.Errorf("cannot configure presets for foreign site")
 			} else {
-				scope = fmt.Sprintf("site:%s", siteID)
+				resultScope = fmt.Sprintf("site:%s", siteID)
 			}
 		default:
 			err = fmt.Errorf("illegal argument: scope has an unrecognized scheme")
@@ -65,7 +67,7 @@ func (ps *PresetsService) parseScope(scope string) (string, string, string, erro
 	if err != nil {
 		ps.Log.Errorf("bad scope: %s: %v", scope, err)
 	}
-	return scope, room, siteID, err
+	return resultScope, room, siteID, err
 
 }
 

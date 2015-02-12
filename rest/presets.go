@@ -41,13 +41,18 @@ func writeResponse(code int, w http.ResponseWriter, response interface{}, err er
 }
 
 func (pr *PresetsRouter) GetScene(r *http.Request, w http.ResponseWriter, params martini.Params) {
-	scene, err := pr.presets.FetchScene(params["id"])
-	writeResponse(400, w, scene, err)
+	id := params["id"]
+	scenes, err := pr.presets.FetchScenes(&model.Query{ID: &id})
+	if scenes != nil && len(*scenes) == 1 {
+		writeResponse(400, w, (*scenes)[0], err)
+	} else {
+		writeResponse(404, w, nil, err)
+	}
 }
 
 func (pr *PresetsRouter) ApplyScene(r *http.Request, w http.ResponseWriter, params martini.Params) {
-	err := pr.presets.ApplyScene(params["id"])
-	writeResponse(400, w, nil, err)
+	scene, err := pr.presets.ApplyScene(params["id"])
+	writeResponse(400, w, scene, err)
 }
 
 func (pr *PresetsRouter) GetScenes(r *http.Request, w http.ResponseWriter) {
@@ -58,7 +63,7 @@ func (pr *PresetsRouter) GetScenes(r *http.Request, w http.ResponseWriter) {
 	} else {
 		scope = ""
 	}
-	scenes, err := pr.presets.FetchScenes(scope)
+	scenes, err := pr.presets.FetchScenes(&model.Query{Scope: &scope})
 	writeResponse(400, w, scenes, err)
 }
 
@@ -82,8 +87,12 @@ func (pr *PresetsRouter) PutScene(r *http.Request, w http.ResponseWriter, params
 
 func (pr *PresetsRouter) DeleteScene(r *http.Request, w http.ResponseWriter, params martini.Params) {
 	id := params["id"]
-	scene, err := pr.presets.DeleteScene(id)
-	writeResponse(400, w, scene, err)
+	scenes, err := pr.presets.DeleteScenes(&model.Query{ID: &id})
+	if scenes != nil && len(*scenes) == 1 {
+		writeResponse(400, w, (*scenes)[0], err)
+	} else {
+		writeResponse(404, w, nil, err)
+	}
 }
 
 func (pr *PresetsRouter) DeleteScenes(r *http.Request, w http.ResponseWriter, params martini.Params) {
@@ -94,7 +103,7 @@ func (pr *PresetsRouter) DeleteScenes(r *http.Request, w http.ResponseWriter, pa
 	} else {
 		scope = ""
 	}
-	scenes, err := pr.presets.DeleteScenes(scope)
+	scenes, err := pr.presets.DeleteScenes(&model.Query{Scope: &scope})
 	writeResponse(400, w, scenes, err)
 }
 

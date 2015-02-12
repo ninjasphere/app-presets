@@ -64,55 +64,27 @@ func (ps *PresetsService) Destroy() error {
 }
 
 // see: http://schema.ninjablocks.com/service/presets#fetchScenes
-func (ps *PresetsService) FetchScenes(scope string) (*[]*model.Scene, error) {
+func (ps *PresetsService) FetchScenes(q *model.Query) (*[]*model.Scene, error) {
 	ps.checkInit()
-	if scope, _, _, err := ps.parseScope(scope); err != nil {
+	if scope, _, _, err := ps.parseScope(q.Scope); err != nil {
 		return nil, err
 	} else {
-		found := ps.match(&model.Query{Scope: &scope})
+		q.Scope = &scope
+		found := ps.match(q)
 		result := ps.copyScenes(found)
 		return &result, nil
 	}
 }
 
-// see: http://schema.ninjablocks.com/service/presets#fetchScene
-func (ps *PresetsService) FetchScene(id string) (*model.Scene, error) {
-	ps.checkInit()
-
-	if id == "" {
-		return nil, fmt.Errorf("illegal argument: id is empty")
-	}
-	result := ps.copyScenes(ps.match(&model.Query{ID: &id}))
-	if len(result) == 1 {
-		return result[0], nil
-	}
-	return nil, fmt.Errorf("object not found: %s", id)
-}
-
-// see: http://schema.ninjablocks.com/service/presets#deleteScene
-func (ps *PresetsService) DeleteScene(id string) (*model.Scene, error) {
-	ps.checkInit()
-
-	if id == "" {
-		return nil, fmt.Errorf("illegal argument: id is empty")
-	}
-
-	found := ps.match(&model.Query{ID: &id})
-	if len(found) == 1 {
-		return ps.deleteAll(found)[0], nil
-	} else {
-		return nil, fmt.Errorf("object not found: %s", id)
-	}
-}
-
 // see: http://schema.ninjablocks.com/service/presets#deleteScenes
-func (ps *PresetsService) DeleteScenes(scope string) (*[]*model.Scene, error) {
+func (ps *PresetsService) DeleteScenes(q *model.Query) (*[]*model.Scene, error) {
 	ps.checkInit()
 
-	if scope, _, _, err := ps.parseScope(scope); err != nil {
+	if scope, _, _, err := ps.parseScope(q.Scope); err != nil {
 		return nil, err
 	} else {
-		result := ps.deleteAll(ps.match(&model.Query{Scope: &scope}))
+		q.Scope = &scope
+		result := ps.deleteAll(ps.match(q))
 		return &result, nil
 	}
 }
@@ -125,7 +97,7 @@ func (ps *PresetsService) FetchScenePrototype(scope string) (*model.Scene, error
 		scope = "site"
 	}
 
-	if scope, room, _, err := ps.parseScope(scope); err != nil {
+	if scope, room, _, err := ps.parseScope(&scope); err != nil {
 		return nil, err
 	} else {
 
@@ -208,7 +180,7 @@ func (ps *PresetsService) StoreScene(m *model.Scene) (*model.Scene, error) {
 		m.Scope = "site"
 	}
 
-	if scope, _, _, err := ps.parseScope(m.Scope); err != nil {
+	if scope, _, _, err := ps.parseScope(&m.Scope); err != nil {
 		return nil, err
 	} else {
 		m.Scope = scope
@@ -247,21 +219,25 @@ func (ps *PresetsService) StoreScene(m *model.Scene) (*model.Scene, error) {
 }
 
 // see: http://schema.ninjablocks.com/service/presets#applyScene
-func (ps *PresetsService) ApplyScene(id string) error {
+func (ps *PresetsService) ApplyScene(id string) (*model.Scene, error) {
 	ps.checkInit()
-	if scene, err := ps.FetchScene(id); err != nil {
-		return err
+	if id == "" {
+		return nil, fmt.Errorf("illegal argument: id is empty")
+	}
+	if scenes, err := ps.FetchScenes(&model.Query{ID: &id}); err != nil || scenes == nil {
+		return nil, err
 	} else {
-		for _, t := range scene.Things {
-			for _, c := range t.Channels {
-				topic := fmt.Sprintf("$thing/%s/channel/%s", t.ID, c.ID)
-				client := ps.Conn.GetServiceClient(topic)
-				if err := client.Call("set", c.State, nil, defaultTimeout); err != nil {
-					ps.Log.Warningf("Call to %s failed: %v", topic, err)
+		for _, scene := range *scenes {
+			for _, t := range scene.Things {
+				for _, c := range t.Channels {
+					topic := fmt.Sprintf("$thing/%s/channel/%s", t.ID, c.ID)
+					client := ps.Conn.GetServiceClient(topic)
+					if err := client.Call("set", c.State, nil, defaultTimeout); err != nil {
+						ps.Log.Warningf("Call to %s failed: %v", topic, err)
+					}
 				}
 			}
 		}
-
-		return nil
+		return nil, nil
 	}
 }
