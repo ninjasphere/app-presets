@@ -56,29 +56,32 @@ Answers a JSON object which contains a prototype scene containing the current st
 
 ##Examples
 
-The following examples show how to use the API with 'curl' and 'jq' to achieve various tasks relating to setting and getting presets.
+The following examples show how to use the API with 'curl' and 'jq' to achieve various tasks relating to setting and getting presets. The examples assume API has been
+set to the API prefix of your sphere, e.g.:
+
+	export API=http://${SPHERE:-ninjasphere}:8101/rest/v1/presets
 
 ### Store the current state in a site-scoped preset 1 with label "from-curl"
 
-	curl -s http://${SPHERE:-ninjasphere}:8101/rest/v1/presets/prototype/site | curl -d @- "http://${SPHERE:-ninjasphere}:8101/rest/v1/presets?slot=1&label=from-curl" | jq .
+	curl -s ${API}/prototype/site | curl -s -d @- "${API}/?slot=1&label=from-curl" | jq .
 
 ### List all existing presets
 
-	curl -s http://${SPHERE:-ninjasphere}:8101/rest/v1/presets | jq .
+	curl -s ${API} | jq .
 
 ### List all existing site-scoped presets
 
-	curl -s http://${SPHERE:-ninjasphere}:8101/rest/v1/presets?scope=site | jq .
+	curl -s ${API}/?scope=site | jq .
 
 ### List all existing room-scoped presets
 
-	curl -s http://${SPHERE:-ninjasphere}:8101/rest/v1/presets?scope=room:{room-id} | jq .
+	curl -s ${API}/?scope=room:{room-id} | jq .
 
 ### Apply site preset # 1
 
-	ID=$(curl -s 'http://${SPHERE:-ninjasphere}:8101/rest/v1/presets?slot=1&scope=site' | jq -r '.[]|.id') &&
-	curl -s -X POST "http://${SPHERE:-ninjasphere}:8101/rest/v1/presets/$ID/apply"
+	ID=$(curl -s "${API}/?slot=1&scope=site" | jq -r '.[]|.id') &&
+	curl -s -X POST "${API}/$ID/apply"
 
 ### Delete all presets
 
-	curl -s -X DELETE http://${SPHERE:-ninjasphere}:8101/rest/v1/presets | jq .
+	curl -s -X DELETE ${API} | jq .
