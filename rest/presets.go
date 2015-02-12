@@ -24,6 +24,7 @@ func (pr *PresetsRouter) Register(r martini.Router) {
 	r.Get("/prototype/site", pr.GetSitePrototype)
 	r.Get("/prototype/room/:roomID", pr.GetRoomPrototype)
 	r.Put("/:id", pr.PutScene)
+	r.Delete("/:id", pr.DeleteScene)
 	r.Post("/:id/apply", pr.ApplyScene)
 	r.Get("", pr.GetScenes)
 	r.Post("", pr.PutScene)
@@ -67,6 +68,12 @@ func (pr *PresetsRouter) PutScene(r *http.Request, w http.ResponseWriter, params
 	scene.ID = params["id"]
 
 	scene, err := pr.presets.StoreScene(scene)
+	writeResponse(400, w, scene, err)
+}
+
+func (pr *PresetsRouter) DeleteScene(r *http.Request, w http.ResponseWriter, params martini.Params) {
+	id := params["id"]
+	scene, err := pr.presets.DeleteScene(id)
 	writeResponse(400, w, scene, err)
 }
 

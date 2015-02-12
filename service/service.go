@@ -96,6 +96,18 @@ func (ps *PresetsService) FetchScene(id string) (*model.Scene, error) {
 	return nil, fmt.Errorf("No such scene: %s", id)
 }
 
+// see: http://schema.ninjablocks.com/service/presets#deleteScene
+func (ps *PresetsService) DeleteScene(id string) (*model.Scene, error) {
+	ps.checkInit()
+	for i, m := range ps.Model.Scenes {
+		if m.ID == id {
+			ps.Model.Scenes = append(ps.Model.Scenes[0:i], ps.Model.Scenes[i+1:]...)
+			return m, nil
+		}
+	}
+	return nil, fmt.Errorf("No such scene: %s", id)
+}
+
 func copyState(ch *nmodel.Channel) interface{} {
 	if ch.LastState != nil {
 		if state, ok := ch.LastState.(map[string]interface{}); ok {
