@@ -75,25 +75,36 @@ func (ps *PresetsService) parseScope(scope string) (string, string, string, erro
 // find the indicies of all matching scenes
 func (ps *PresetsService) match(spec matchSpec) []int {
 	found := make([]int, 0, len(ps.Model.Scenes))
+
+	if spec.scope != nil && *spec.scope == "" {
+		spec.scope = nil
+	}
+
+	matchAll := spec.scope == nil && spec.id == nil && spec.slot == nil
+
 	for i, m := range ps.Model.Scenes {
 
-		// look for the index of all matching scenes
+		if matchAll {
+			found = append(found, i)
+		} else {
+			// look for the index of all matching scenes
 
-		if spec.scope != nil && m.Scope == *spec.scope {
-			if spec.slot != nil {
-				if m.Slot == *spec.slot {
+			if spec.scope != nil && m.Scope == *spec.scope {
+				if spec.slot != nil {
+					if m.Slot == *spec.slot {
+						found = append(found, i)
+						continue
+					}
+				} else {
 					found = append(found, i)
 					continue
 				}
-			} else {
+			}
+
+			if spec.id != nil && m.ID == *spec.id {
 				found = append(found, i)
 				continue
 			}
-		}
-
-		if spec.id != nil && m.ID == *spec.id {
-			found = append(found, i)
-			continue
 		}
 	}
 	return found
