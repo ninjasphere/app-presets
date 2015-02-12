@@ -28,6 +28,7 @@ func (pr *PresetsRouter) Register(r martini.Router) {
 	r.Post("/:id/apply", pr.ApplyScene)
 	r.Get("", pr.GetScenes)
 	r.Post("", pr.PutScene)
+	r.Delete("", pr.DeleteScenes)
 }
 
 func writeResponse(code int, w http.ResponseWriter, response interface{}, err error) {
@@ -52,11 +53,10 @@ func (pr *PresetsRouter) ApplyScene(r *http.Request, w http.ResponseWriter, para
 func (pr *PresetsRouter) GetScenes(r *http.Request, w http.ResponseWriter) {
 	r.ParseForm()
 	var scope string
-	if scopes, ok := r.Form["scope"]; !ok || len(scopes) == 0 || scopes[0] == "site" {
-		siteID := config.MustString("siteId")
-		scope = fmt.Sprintf("site:%s", siteID)
-	} else {
+	if scopes, ok := r.Form["scope"]; ok {
 		scope = scopes[0]
+	} else {
+		scope = ""
 	}
 	scenes, err := pr.presets.FetchScenes(scope)
 	writeResponse(400, w, scenes, err)
@@ -75,6 +75,18 @@ func (pr *PresetsRouter) DeleteScene(r *http.Request, w http.ResponseWriter, par
 	id := params["id"]
 	scene, err := pr.presets.DeleteScene(id)
 	writeResponse(400, w, scene, err)
+}
+
+func (pr *PresetsRouter) DeleteScenes(r *http.Request, w http.ResponseWriter, params martini.Params) {
+	var scope string
+	r.ParseForm()
+	if scopes, ok := r.Form["scope"]; ok {
+		scope = scopes[0]
+	} else {
+		scope = ""
+	}
+	scenes, err := pr.presets.DeleteScenes(scope)
+	writeResponse(400, w, scenes, err)
 }
 
 func (pr *PresetsRouter) GetSitePrototype(r *http.Request, w http.ResponseWriter) {
