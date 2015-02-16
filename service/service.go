@@ -115,57 +115,15 @@ func (ps *PresetsService) FetchScenePrototype(scope string) (*model.Scene, error
 			}
 			keptThings = append(keptThings, t)
 		}
+
 		result := &model.Scene{
 			Scope:  scope,
 			Things: make([]model.ThingState, 0, len(keptThings)),
 		}
 		for _, t := range keptThings {
-			if t.Device == nil || t.Device.Channels == nil {
-				continue
-			}
-			thingState := model.ThingState{
-				ID:       t.ID,
-				Channels: make([]model.ChannelState, 0, len(*t.Device.Channels)),
-			}
-		Channels:
-			for _, c := range *t.Device.Channels {
-
-				for _, x := range excludedChannels {
-					// don't include channels with excluded schema
-					if x == c.Schema {
-						continue Channels
-					}
-				}
-
-				if c.SupportedMethods == nil {
-					// don't include channels with no supported methods
-					continue
-				}
-
-				found := false
-				for _, m := range *c.SupportedMethods {
-					found = (m == "set")
-					if found {
-						break
-					}
-				}
-				if !found {
-					// don't include channels that do not support the set method
-					continue
-				}
-				state := copyState(c)
-				if state == nil {
-					continue
-				}
-				channelState := model.ChannelState{
-					ID:    c.ID,
-					State: state,
-				}
-				thingState.Channels = append(thingState.Channels, channelState)
-			}
-
-			if len(thingState.Channels) > 0 {
-				result.Things = append(result.Things, thingState)
+			ts := ps.createThingState(t)
+			if ts != nil {
+				result.Things = append(result.Things, *ts)
 			}
 		}
 		return result, nil

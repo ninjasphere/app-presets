@@ -141,3 +141,56 @@ func (ps *PresetsService) deleteAll(selection []int) []*model.Scene {
 	ps.Model.Scenes = ps.Model.Scenes[0:k]
 	return result
 }
+
+// create a ThingState object from a thing.
+func (ps *PresetsService) createThingState(t *nmodel.Thing) *model.ThingState {
+	if t.Device == nil || t.Device.Channels == nil {
+		return nil
+	}
+	thingState := model.ThingState{
+		ID:       t.ID,
+		Channels: make([]model.ChannelState, 0, len(*t.Device.Channels)),
+	}
+Channels:
+	for _, c := range *t.Device.Channels {
+
+		for _, x := range excludedChannels {
+			// don't include channels with excluded schema
+			if x == c.Schema {
+				continue Channels
+			}
+		}
+
+		if c.SupportedMethods == nil {
+			// don't include channels with no supported methods
+			continue
+		}
+
+		found := false
+		for _, m := range *c.SupportedMethods {
+			found = (m == "set")
+			if found {
+				break
+			}
+		}
+		if !found {
+			// don't include channels that do not support the set method
+			continue
+		}
+		state := copyState(c)
+		if state == nil {
+			return nil
+		}
+		channelState := model.ChannelState{
+			ID:    c.ID,
+			State: state,
+		}
+		thingState.Channels = append(thingState.Channels, channelState)
+	}
+
+	if len(thingState.Channels) == 0 {
+		return nil
+	}
+
+	return &thingState
+}
