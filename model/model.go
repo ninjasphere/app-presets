@@ -3,8 +3,9 @@ package model
 
 // A ChannelState represents the state of a single channel.
 type ChannelState struct {
-	ID    string      `json:"id"`
-	State interface{} `json:"state,omitempty"`
+	ID        string      `json:"id"`
+	State     interface{} `json:"state,omitempty"` // the state to apply
+	UndoState interface{} `json:"undo,omitempty"`  // the state immediately prior to the last apply
 }
 
 // A ThingState represents the state of a single thing. It consists of the id of the thing,
