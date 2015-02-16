@@ -185,8 +185,17 @@ func (ps *PresetsService) ApplyScene(id string) (*model.Scene, error) {
 	if scenes, err := ps.FetchScenes(&model.Query{ID: &id}); err != nil || scenes == nil {
 		return nil, err
 	} else {
+		thingClient := ps.Conn.GetServiceClient("$home/services/ThingModel")
 		for _, scene := range *scenes {
-			for _, t := range scene.Things {
+			for i, t := range scene.Things {
+				thing := &nmodel.Thing{}
+				if err := thingClient.Call("fetch", []string{t.ID}, &thing, defaultTimeout); err != nil {
+					ps.Log.Errorf("failed to obtain thing '%s': %v", id, err)
+					continue
+				}
+				current := ps.createThingState(thing)
+				t = *t.MergeUndoState(current)
+				scene.Things[i] = t
 				for _, c := range t.Channels {
 					topic := fmt.Sprintf("$thing/%s/channel/%s", t.ID, c.ID)
 					client := ps.Conn.GetServiceClient(topic)
@@ -195,7 +204,9 @@ func (ps *PresetsService) ApplyScene(id string) (*model.Scene, error) {
 					}
 				}
 			}
+			ps.Save(ps.Model)
+			return scene, nil
 		}
-		return nil, nil
+		return nil, fmt.Errorf("failed to find a matching scene: %s", id)
 	}
 }
