@@ -187,6 +187,8 @@ func (ps *PresetsService) ApplyScene(id string) (*model.Scene, error) {
 	} else {
 		thingClient := ps.Conn.GetServiceClient("$home/services/ThingModel")
 		for _, scene := range *scenes {
+			things := make([]*model.ThingState, 0, len(scene.Things))
+
 			for i, t := range scene.Things {
 				thing := &nmodel.Thing{}
 				if err := thingClient.Call("fetch", []string{t.ID}, &thing, defaultTimeout); err != nil {
@@ -196,6 +198,10 @@ func (ps *PresetsService) ApplyScene(id string) (*model.Scene, error) {
 				current := ps.createThingState(thing)
 				t = *t.MergeUndoState(current)
 				scene.Things[i] = t
+				things = append(things, &scene.Things[i])
+			}
+
+			for _, t := range things {
 				for _, c := range t.Channels {
 					topic := fmt.Sprintf("$thing/%s/channel/%s", t.ID, c.ID)
 					client := ps.Conn.GetServiceClient(topic)
@@ -222,6 +228,7 @@ func (ps *PresetsService) UndoScene(id string) (*model.Scene, error) {
 	} else {
 		thingClient := ps.Conn.GetServiceClient("$home/services/ThingModel")
 		for _, scene := range *scenes {
+			things := make([]*model.ThingState, 0, len(scene.Things))
 			for _, t := range scene.Things {
 
 				thing := &nmodel.Thing{}
@@ -234,7 +241,11 @@ func (ps *PresetsService) UndoScene(id string) (*model.Scene, error) {
 				// only undo channels that have not been modified since the scene was applied.
 
 				matched := t.MatchState(current)
-				for _, c := range matched.Channels {
+				things = append(things, matched)
+			}
+
+			for _, t := range things {
+				for _, c := range t.Channels {
 					if c.UndoState != nil {
 						topic := fmt.Sprintf("$thing/%s/channel/%s", t.ID, c.ID)
 						client := ps.Conn.GetServiceClient(topic)
