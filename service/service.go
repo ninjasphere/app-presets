@@ -210,3 +210,33 @@ func (ps *PresetsService) ApplyScene(id string) (*model.Scene, error) {
 		return nil, fmt.Errorf("failed to find a matching scene: %s", id)
 	}
 }
+
+// see: http://schema.ninjablocks.com/service/presets#undoScene
+func (ps *PresetsService) UndoScene(id string) (*model.Scene, error) {
+	ps.checkInit()
+	if id == "" {
+		return nil, fmt.Errorf("illegal argument: id is empty")
+	}
+	if scenes, err := ps.FetchScenes(&model.Query{ID: &id}); err != nil || scenes == nil {
+		return nil, err
+	} else {
+		for _, scene := range *scenes {
+			for _, t := range scene.Things {
+				for _, c := range t.Channels {
+					topic := fmt.Sprintf("$thing/%s/channel/%s", t.ID, c.ID)
+					client := ps.Conn.GetServiceClient(topic)
+					if c.UndoState != nil {
+						if err := client.Call("set", c.UndoState, nil, defaultTimeout); err != nil {
+							ps.Log.Warningf("Call to %s failed: %v", topic, err)
+						}
+					} else {
+						ps.Log.Warningf("No undo state found for thing ID, channelID: %s, %s. Channel undo ignored.", t.ID, c.ID)
+					}
+				}
+			}
+			ps.Save(ps.Model)
+			return scene, nil
+		}
+		return nil, fmt.Errorf("failed to find a matching scene: %s", id)
+	}
+}

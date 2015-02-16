@@ -48,6 +48,9 @@ Delete the specified scene. Answers the deleted object in the response.
 ####POST /rest/v1/presets/{scene-id}/apply
 Apply the specified scene to the scene's things.
 
+####POST /rest/v1/presets/{scene-id}/undo
+Undo any changes to scene's things made the last time the scene was applied. (Or do nothing, if the scene was not applied.)
+
 ####GET /rest/v1/presets/prototype/site
 Answers a JSON object which contains a prototype scene containing the current states of each presetable thing in the site.
 
