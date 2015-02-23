@@ -27,7 +27,7 @@ func makeService() (error, *PresetsService) {
 		Model: &model.Presets{
 			Version: "1",
 			Scenes: []*model.Scene{
-				&model.Scene{
+				{
 					ID:    "existing-uuid",
 					Scope: "site:site-id",
 				},

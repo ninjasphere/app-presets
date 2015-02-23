@@ -28,6 +28,7 @@ type PresetsService struct {
 	Conn        Connection
 	Log         *logger.Logger
 	initialized bool
+	queue       chan *task
 }
 
 func (ps *PresetsService) Init() error {
@@ -53,12 +54,17 @@ func (ps *PresetsService) Init() error {
 	if _, err = ps.Conn.ExportService(ps, topic, announcement); err != nil {
 		return err
 	}
-
+	numWorkers := config.Int(10, "app-presets.service.workers")
+	ps.queue = make(chan *task, numWorkers)
+	for i := 0; i <= numWorkers; i++ {
+		go ps.worker()
+	}
 	ps.initialized = true
 	return nil
 }
 
 func (ps *PresetsService) Destroy() error {
+	close(ps.queue)
 	ps.initialized = false
 	return nil
 }
@@ -203,10 +209,10 @@ func (ps *PresetsService) ApplyScene(id string) (*model.Scene, error) {
 
 			for _, t := range things {
 				for _, c := range t.Channels {
-					topic := fmt.Sprintf("$thing/%s/channel/%s", t.ID, c.ID)
-					client := ps.Conn.GetServiceClient(topic)
-					if err := client.Call("set", c.State, nil, defaultTimeout); err != nil {
-						ps.Log.Warningf("Call to %s failed: %v", topic, err)
+					ps.queue <- &task{
+						topic:   fmt.Sprintf("$thing/%s/channel/%s", t.ID, c.ID),
+						method:  "set",
+						payload: c.State,
 					}
 				}
 			}
@@ -247,10 +253,10 @@ func (ps *PresetsService) UndoScene(id string) (*model.Scene, error) {
 			for _, t := range things {
 				for _, c := range t.Channels {
 					if c.UndoState != nil {
-						topic := fmt.Sprintf("$thing/%s/channel/%s", t.ID, c.ID)
-						client := ps.Conn.GetServiceClient(topic)
-						if err := client.Call("set", c.UndoState, nil, defaultTimeout); err != nil {
-							ps.Log.Warningf("Call to %s failed: %v", topic, err)
+						ps.queue <- &task{
+							topic:   fmt.Sprintf("$thing/%s/channel/%s", t.ID, c.ID),
+							method:  "set",
+							payload: c.UndoState,
 						}
 					} else {
 						ps.Log.Warningf("No undo state found for thing ID, channelID: %s, %s. Channel undo ignored.", t.ID, c.ID)

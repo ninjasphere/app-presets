@@ -10,6 +10,27 @@ import (
 	"strings"
 )
 
+type task struct {
+	topic   string
+	method  string
+	payload interface{}
+}
+
+func (ps *PresetsService) worker() {
+	for {
+		select {
+		case w := <-ps.queue:
+			if w == nil {
+				return
+			}
+			client := ps.Conn.GetServiceClient(w.topic)
+			if err := client.Call(w.method, w.payload, nil, defaultTimeout); err != nil {
+				ps.Log.Warningf("Call to %s of %s with %v failed: %v", w.method, w.topic, w.payload, err)
+			}
+		}
+	}
+}
+
 // check that the service has been initialized
 func (ps *PresetsService) checkInit() {
 	if ps.Log == nil {
