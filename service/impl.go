@@ -179,7 +179,7 @@ Channels:
 		}
 		state := copyState(c)
 		if state == nil {
-			return nil
+			continue
 		}
 		channelState := model.ChannelState{
 			ID:    c.ID,
