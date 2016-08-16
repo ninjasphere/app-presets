@@ -1,0 +1,17 @@
+{
+	"ImportPath": "github.com/ninjasphere/app-presets",
+	"GoVersion": "go1.6",
+	"GodepVersion": "v74",
+	"Deps": [
+		{
+			"ImportPath": "github.com/juju/loggo",
+			"Comment": "known-compatible",
+			"Rev": "6d22922ff98aac6608b8a58191bd6b2e1dac3fca"
+		},
+		{
+			"ImportPath": "github.com/wolfeidau/loggo-syslog",
+			"Comment": "v1.0.1",
+			"Rev": "319e18c8e49e588df8034e5609ba1bc86d3bd443"
+		}
+	]
+}

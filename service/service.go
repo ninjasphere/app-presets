@@ -1,9 +1,9 @@
 package service
 
 import (
-	"code.google.com/p/go-uuid/uuid"
 	"fmt"
 	"github.com/ninjasphere/app-presets/model"
+	"github.com/pborman/uuid"
 
 	"github.com/ninjasphere/go-ninja/api"
 	"github.com/ninjasphere/go-ninja/config"
